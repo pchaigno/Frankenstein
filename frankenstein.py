@@ -2,6 +2,7 @@
 import sys
 import json
 import os
+import time
 import re
 import subprocess
 
@@ -28,6 +29,8 @@ def dump_logs(repository):
 	
 	os.chdir('..')
 
+	return logs
+
 
 def dump_commits(repository):
 	os.chdir(repository)
@@ -39,8 +42,10 @@ def dump_commits(repository):
 	for i in range(1, len(logs)):
 		os.system("git diff --binary %s %s > %d.patch" % (logs[i-1]['hash'], logs[i]['hash'], i))
 
-
-def rebuild_repository(dump_folder, repository):
+"""
+contributors Contributors to replace.
+"""
+def rebuild_repository(dump_folder, repository, your_username, your_email, contributors = [], offset = 0):
 	os.system("mkdir %s" % (repository))
 	os.chdir(repository)
 
@@ -51,12 +56,26 @@ def rebuild_repository(dump_folder, repository):
 	os.system("git init")
 	for i in range(0, len(logs)):
 		log = logs[i]
+		
+		committer = log['committer']
+		committer_email = log['committer-email']
+		if contributors == 'all' or committer in contributors:
+			committer = your_username
+			committer_email = your_email
+		author = log['author']
+		author_email = log['author-email']
+		if contributors == 'all' or author in contributors:
+			author = your_username
+			author_email = your_email
+		committer_date = log['committer-date'] + offset
+		author_date = log['author-date'] + offset
+
 		os.system("git apply ../%s/%d.patch" % (dump_folder, i))
 		os.system("git add --all .")
-		os.environ["GIT_COMMITTER_NAME"] = log['committer']
-		os.environ["GIT_COMMITTER_EMAIL"] = log['committer-email']
-		os.environ["GIT_COMMITTER_DATE"] = str(log['committer-date'])
-		os.system("""git commit -m "%s" --author="%s <%s>" --date=%d""" % (log['message'], log['author'], log['author-email'], log['author-date']))
+		os.environ["GIT_COMMITTER_NAME"] = committer
+		os.environ["GIT_COMMITTER_EMAIL"] = committer_email
+		os.environ["GIT_COMMITTER_DATE"] = str(committer_date)
+		os.system("""git commit -m "%s" --author="%s <%s>" --date=%d""" % (log['message'], author, author_email, author_date))
 
 	os.chdir('..')
 
@@ -70,18 +89,11 @@ def get_contributors(repository):
 	return contributors
 
 
-def check_repository(repository, author):
-	json_data = open("%s/logs.json" % (repository))
-	logs = json.load(json_data)
-	json_data.close()
-
-	if len(logs) < 50:
-		print("Not enough commits in this repository.")
-
+def find_50commits_month(logs, author = None):
 	for i in range(len(logs)-1, 50, -1):
 		nb_commits = 0
 		for j in range(i-1, 0, -1):
-			if logs[j]['author-email'] == author:
+			if author != None and logs[j]['author-email'] == author:
 				period = logs[i]['author-date'] - logs[j]['author-date']
 				if period > 30 * 24 * 3600:
 					break
@@ -89,17 +101,56 @@ def check_repository(repository, author):
 					print("Match found for %s! (n%d => -%d)" % (author, i, len(logs) - i))
 					return i
 				nb_commits += 1
-
 	return -1
+
+
+def find_contributor_50commits_month(repository, logs):
+	contributors = get_contributors(repository)
+	for contributor in contributors:
+		num_commit = find_50commits_month(logs, contributor)
+		return (contributor, num_commit)
+	return (None, -1)
+
+
+def compute_offset(logs, num_commit):
+	return time.time() - logs[num_commit]['author-date']
 
 
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
-		print("Usage: frankenstein.py <repository>")
+		print("Usage: frankenstein.py <repository> <new-name> <your-email> <your-username>")
 		sys.exit(2)
 
 	repository = sys.argv[1]
-	dump_logs(repository)
-	contributors = get_contributors(repository)
-	for contributor in contributors:
-		check_repository(repository, contributor)
+	new_repository = sys.argv[2]
+	your_email = sys.argv[3]
+	your_username = sys.argv[4]
+	logs = dump_logs(repository)
+
+	if len(logs) < 50:
+		print("Not enough commits in this repository.")
+		sys.exit(1)
+
+	dump_commits(repository):
+
+	num_commit = find_50commits_month(logs, your_email):
+	if num_commit != -1:
+		offset = compute_offset(logs, num_commit)
+		rebuild_repository(repository, new_repository, your_username, your_email, [], offset)
+		sys.argv(0)
+
+	(contributor, num_commit) = find_contributor_50commits_month(repository, logs)
+	if contributor != None:
+		offset = compute_offset(logs, num_commit)
+		rebuild_repository(repository, new_repository, your_username, your_email, [contributor], offset)
+		sys.exit(0)
+
+	num_commit = find_50commits_month(logs)
+	if num_commit != -1:
+		offset = compute_offset(logs, num_commit)
+		rebuild_repository(repository, new_repository, your_username, your_email, 'all', offset)
+		sys.exit(0)
+
+	#rebuild_repository(repository, new_repository, your_username, your_email, contributors = [], offset = 0)
+	print("Unable to find 50 commits in a month.")
+	sys.exit(1)
