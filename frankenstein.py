@@ -42,10 +42,15 @@ def dump_commits(repository):
 	for i in range(1, len(logs)):
 		os.system("git diff --binary %s %s > %d.patch" % (logs[i-1]['hash'], logs[i]['hash'], i))
 
+	os.chdir('..')
+
+
 """
 contributors Contributors to replace.
 """
 def rebuild_repository(dump_folder, repository, your_username, your_email, contributors = [], offset = 0):
+	
+
 	os.system("mkdir %s" % (repository))
 	os.chdir(repository)
 
@@ -70,7 +75,12 @@ def rebuild_repository(dump_folder, repository, your_username, your_email, contr
 		committer_date = log['committer-date'] + offset
 		author_date = log['author-date'] + offset
 
-		os.system("git apply ../%s/%d.patch" % (dump_folder, i))
+		current_time = (int)(time.time())
+		if committer_date > current_time or author_date > current_time:
+			print("Reached current date.")
+			break
+
+		os.system("git apply --whitespace=nowarn ../%s/%d.patch" % (dump_folder, i))
 		os.system("git add --all .")
 		os.environ["GIT_COMMITTER_NAME"] = committer
 		os.environ["GIT_COMMITTER_EMAIL"] = committer_email
@@ -113,7 +123,7 @@ def find_contributor_50commits_month(repository, logs):
 
 
 def compute_offset(logs, num_commit):
-	return time.time() - logs[num_commit]['author-date']
+	return (int)(time.time()) - logs[num_commit]['author-date']
 
 
 if __name__ == "__main__":
@@ -140,7 +150,7 @@ if __name__ == "__main__":
 		print("You made 50 commits in a month with %d as last commit" % (num_commit))
 		offset = compute_offset(logs, num_commit)
 		rebuild_repository(repository, new_repository, your_name, your_email, [], offset)
-		sys.argv(0)
+		sys.exit(0)
 
 	print("Searching for a contributor with 50 commits in a month...")
 	(contributor, num_commit) = find_contributor_50commits_month(repository, logs)
