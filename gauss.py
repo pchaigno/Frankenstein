@@ -15,6 +15,7 @@ if __name__ == "__main__":
 	total = sum(numbers)
 	while total < 50 or total > 60:
 		numbers = gauss()
+		total = sum(numbers)
 
 	mean = total / len(numbers)
 	print("sum=%d" % total)
