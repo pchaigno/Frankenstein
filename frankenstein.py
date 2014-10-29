@@ -117,40 +117,47 @@ def compute_offset(logs, num_commit):
 
 
 if __name__ == "__main__":
-	if len(sys.argv) < 2:
-		print("Usage: frankenstein.py <repository> <new-name> <your-email> <your-username>")
+	if len(sys.argv) < 5:
+		print("Usage: frankenstein.py <repository> <new-name> <your-email> <your-name>")
 		sys.exit(2)
 
 	repository = sys.argv[1]
 	new_repository = sys.argv[2]
 	your_email = sys.argv[3]
-	your_username = sys.argv[4]
+	your_name = sys.argv[4]
 	logs = dump_logs(repository)
 
 	if len(logs) < 50:
 		print("Not enough commits in this repository.")
 		sys.exit(1)
 
-	dump_commits(repository):
+	print("Dumping commits in patches...")
+	dump_commits(repository)
 
-	num_commit = find_50commits_month(logs, your_email):
+	print("Checking if you made 50 commits in a month...")
+	num_commit = find_50commits_month(logs, your_email)
 	if num_commit != -1:
+		print("You made 50 commits in a month with %d as last commit" % (num_commit))
 		offset = compute_offset(logs, num_commit)
-		rebuild_repository(repository, new_repository, your_username, your_email, [], offset)
+		rebuild_repository(repository, new_repository, your_name, your_email, [], offset)
 		sys.argv(0)
 
+	print("Searching for a contributor with 50 commits in a month...")
 	(contributor, num_commit) = find_contributor_50commits_month(repository, logs)
 	if contributor != None:
+		print("%s made 50 commits in a month with %d as last commit" % (contributor, num_commit))
 		offset = compute_offset(logs, num_commit)
-		rebuild_repository(repository, new_repository, your_username, your_email, [contributor], offset)
+		rebuild_repository(repository, new_repository, your_name, your_email, [contributor], offset)
 		sys.exit(0)
 
+	print("Searching for a month with 50 commits...")
 	num_commit = find_50commits_month(logs)
 	if num_commit != -1:
+		print("50 commits in a month were found ending with commit %d" % (num_commit))
 		offset = compute_offset(logs, num_commit)
-		rebuild_repository(repository, new_repository, your_username, your_email, 'all', offset)
+		rebuild_repository(repository, new_repository, your_name, your_email, 'all', offset)
 		sys.exit(0)
 
-	#rebuild_repository(repository, new_repository, your_username, your_email, contributors = [], offset = 0)
+	#rebuild_repository(repository, new_repository, your_name, your_email, contributors = [], offset = 0)
 	print("Unable to find 50 commits in a month.")
 	sys.exit(1)
