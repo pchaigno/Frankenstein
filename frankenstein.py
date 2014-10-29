@@ -126,6 +126,20 @@ def compute_offset(logs, num_commit):
 	return (int)(time.time()) - logs[num_commit]['author-date']
 
 
+def compute_commit_time_period(logs, start_commit, end_commit):
+	min_time = 3600 * 24
+	max_time = 0
+	for i in range(start_commit, end_commit):
+		log = logs[i]
+		date = datetime.fromtimestamp(log['author-date'])
+		time = date.hour * 3600 + date.minutes * 60 + date.second
+		if time > max_time:
+			max_time = time
+		if time < min_time:
+			min_time = time 
+	return (min_time, max_time)
+
+
 if __name__ == "__main__":
 	if len(sys.argv) < 5:
 		print("Usage: frankenstein.py <repository> <new-name> <your-email> <your-name>")
