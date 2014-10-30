@@ -132,7 +132,8 @@ def rebuild_repository(dump_folder, logs, repository, your_username, your_email,
 		message = log['message'].replace('"', '\\"')
 		
 		# Quiet mode for the commits, only the errors are shown.
-		return_code = os.system("""git commit -q -m "%s" --author="%s <%s>" --date=%d""" % (message, author, author_email, author_date))
+		# allow-empty option for commits containing nothing (merge commits for example).
+		return_code = os.system("""git commit --allow-empty -q -m "%s" --author="%s <%s>" --date=%d""" % (message, author, author_email, author_date))
 		
 	os.chdir('..')
 
