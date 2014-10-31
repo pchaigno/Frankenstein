@@ -211,6 +211,6 @@ if __name__ == "__main__":
 		except UndefinedCharacterError as error:
 			print(error)
 			sys.exit(3)
-		start_date = int(time.mktime(datetime.date(year=2014, month=2, day=9).timetuple()))
+		start_date = int(time.mktime(datetime.date(year=2013, month=11, day=3).timetuple()))
 		dates = compute_dates(start_date, string_encoding)
 	draw_pixels(repository, username, email, dates)

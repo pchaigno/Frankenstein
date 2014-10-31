@@ -2,6 +2,7 @@
 import sys
 import gauss
 import random
+import re
 import datetime
 import git
 import time
@@ -137,10 +138,16 @@ if __name__ == "__main__":
 		print("Usage: frankenstein.py <repository> <new-name> <your-email> <your-name>")
 		sys.exit(2)
 
-	repository = sys.argv[1]
+	source = sys.argv[1]
 	new_repository = sys.argv[2]
 	your_email = sys.argv[3]
 	your_name = sys.argv[4]
+
+	# If the source is an URL we need to download the repository first.
+	repository = source
+	matches = re.match(r'https?:\/\/.+\/([^\/]+)(\.git)?$', source)
+	if matches:
+		repository = git.clone_repository(source)
 
 	# Dumps the git logs from the repository to a JSON document.
 	logs = git.dump_logs(repository)
@@ -153,16 +160,18 @@ if __name__ == "__main__":
 	# Dumps the commits from the repository as .patch files:
 	print("Dumping commits in patches...")
 	git.dump_commits(repository, logs)
+	print()
 
 	# Searches for 50 commits in a month under the name of the user.
 	# Only copy the repository with a time shift to put the streak in the last month if a streak is found.
 	print("Checking if you made 50 commits in a month...")
 	num_commit = find_50commits_month(logs, your_email)
 	if num_commit != -1:
-		print("You made 50 commits in a month with %d as last commit" % (num_commit))
+		print("You made 50 commits in a month with %dth as last commit" % (num_commit))
 		offset = compute_offset(logs, num_commit)
 		git.rebuild_repository(repository, logs, new_repository, your_name, your_email, [], offset)
 		sys.exit(0)
+	print()
 
 	# Searches for a contributor with 50 commits in a month.
 	# If found, the contributor will be replaced with the user of the script.
@@ -170,10 +179,11 @@ if __name__ == "__main__":
 	print("Searching for a contributor with 50 commits in a month...")
 	(contributor, num_commit) = find_contributor_50commits_month(repository, logs)
 	if contributor != None:
-		print("%s made 50 commits in a month with %d as last commit" % (contributor, num_commit))
+		print("%s made 50 commits in a month with %dth as last commit" % (contributor, num_commit))
 		offset = compute_offset(logs, num_commit)
 		git.rebuild_repository(repository, logs, new_repository, your_name, your_email, [contributor], offset)
 		sys.exit(0)
+	print()
 
 	# Searches for a month with 50 commits.
 	# If found, all contributors to the project will be replaced with the user of the script.
@@ -185,6 +195,7 @@ if __name__ == "__main__":
 		offset = compute_offset(logs, num_commit)
 		git.rebuild_repository(repository, logs, new_repository, your_name, your_email, 'all', offset)
 		sys.exit(0)
+	print()
 
 	# Squashes 50 or more commit dates to put them in a month.
 	# Then, the date are shifted as before to put the 50 squashed commits in the last month.

@@ -172,3 +172,22 @@ if __name__ == "__main__":
 	logs = dump_logs(repository)
 	dump_commits(repository, logs)
 	rebuild_repository(repository, logs, new_repository, '', '', [], 0)
+
+
+"""Clones a repository.
+
+Args:
+	url: The URL to the git repository (need to be HTTP or HTTPS).
+
+Returns:
+	The folder where the repository was downloaded.
+"""
+def clone_repository(url):
+	os.system("git clone %s" % url)
+	print()
+
+	matches = re.match(r'https?:\/\/.+\/([^\/]+)(\.git)?$', url)
+	if not matches:
+		raise Exception("You need to provide a HTTP(S) link.")
+	repository = matches.group(1)
+	return repository
