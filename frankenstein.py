@@ -84,7 +84,7 @@ Returns:
 def compute_commit_time_period(logs):
 	min_time = 3600 * 24
 	max_time = 0
-	for i in range(start_commit, end_commit):
+	for i in range(0, len(logs)):
 		log = logs[i]
 		commit_date = datetime.datetime.fromtimestamp(log['author-date'])
 		commit_time = commit_date.hour * 3600 + commit_date.minute * 60 + commit_date.second
