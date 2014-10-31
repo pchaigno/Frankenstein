@@ -37,7 +37,7 @@ def generate_in_range(mean, length, min_sum, max_sum):
 	numbers = generate(mean, length)
 	total = sum(numbers)
 	while total < 50 or total > 60:
-		numbers = generate()
+		numbers = generate(mean, length)
 		total = sum(numbers)
 	return numbers
 
