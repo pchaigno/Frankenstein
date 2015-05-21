@@ -10,8 +10,8 @@ Copy a repository and place 50 of its commits in a month under your name/email a
 * Find a good source repository.
 * Find a new name for it.
 * Create a repository with that name on GitHub.
-* Clone Frankenstein (`git clone https://github.com/pchaigno/Frankenstein`)
-* Run `python3 Frankenstein/frankenstein.py <Link to the original repository> <New name> <Your email address for GitHub> <Your username on GitHub>`
+* Clone Frankenstein (`git clone https://github.com/pchaigno/frankenstein`)
+* Run `python3 frankenstein/frankenstein.py <Link to the original repository> <New name> <Your email address for GitHub> <Your username on GitHub>`
 * Go to the directory created by Frankenstein in the previous step (New name)
 * Run `git remote add origin https://<Your username on GitHub>@github.com/<Your username on GitHub>/<New name>`
 * Run `git push origin master`
